@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Color Spectrum Generator</title>
+    <title>Fixed Color Spectrum Generator</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -11,6 +11,7 @@
             flex-direction: column;
             align-items: center;
             padding: 20px;
+            background-color: #f0f0f0;
         }
         #colorPickers {
             display: flex;
@@ -19,23 +20,52 @@
         }
         canvas {
             border: 1px solid #ccc;
+            background-color: white;
         }
         #output {
             width: 100%;
             height: 200px;
             margin-top: 20px;
         }
+        #buttonContainer {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: center;
+        }
+        .demoButton {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 20px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .demoButton:hover {
+            transform: scale(1.05);
+        }
+        #controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
-    <h1>Color Spectrum Generator</h1>
+    <h1>Fixed Color Spectrum Generator</h1>
     <div id="colorPickers">
         <input type="color" id="color1" value="#FE795D">
         <input type="color" id="color2" value="#EB4F27">
         <input type="color" id="color3" value="#A5371B">
     </div>
+    <div id="controls">
+        <button id="randomizeButton">Randomize Colors</button>
+        <button id="generateButton">Generate Spectrum</button>
+    </div>
     <canvas id="spectrum" width="500" height="50"></canvas>
-    <button id="generateButton">Generate Spectrum</button>
+    <div id="buttonContainer"></div>
     <textarea id="output" readonly></textarea>
 
     <script>
@@ -47,7 +77,7 @@
         }
 
         function rgbToHex(r, g, b) {
-            return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+            return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).padStart(6, '0');
         }
 
         function interpolateColor(color1, color2, factor) {
@@ -98,20 +128,47 @@
             return config;
         }
 
-        document.getElementById('generateButton').addEventListener('click', () => {
+        function createDemoButtons(spectrum) {
+            const container = document.getElementById('buttonContainer');
+            container.innerHTML = '';
+            spectrum.forEach((color, index) => {
+                const button = document.createElement('button');
+                button.className = 'demoButton';
+                button.style.backgroundColor = color;
+                button.textContent = `Color ${index + 1}`;
+                container.appendChild(button);
+            });
+        }
+
+        function randomColor() {
+            return '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+        }
+
+        function randomizeColors() {
+            document.getElementById('color1').value = randomColor();
+            document.getElementById('color2').value = randomColor();
+            document.getElementById('color3').value = randomColor();
+            generateSpectrumFromInputs();
+        }
+
+        function generateSpectrumFromInputs() {
             const color1 = hexToRgb(document.getElementById('color1').value);
             const color2 = hexToRgb(document.getElementById('color2').value);
             const color3 = hexToRgb(document.getElementById('color3').value);
 
             const spectrum = generateSpectrum(color1, color2, color3, 18);
             drawSpectrum(spectrum);
+            createDemoButtons(spectrum);
 
             const tailwindConfig = generateTailwindConfig(spectrum);
             document.getElementById('output').value = JSON.stringify(tailwindConfig, null, 2);
-        });
+        }
+
+        document.getElementById('generateButton').addEventListener('click', generateSpectrumFromInputs);
+        document.getElementById('randomizeButton').addEventListener('click', randomizeColors);
 
         // Initial generation
-        document.getElementById('generateButton').click();
+        generateSpectrumFromInputs();
     </script>
 </body>
 </html>
